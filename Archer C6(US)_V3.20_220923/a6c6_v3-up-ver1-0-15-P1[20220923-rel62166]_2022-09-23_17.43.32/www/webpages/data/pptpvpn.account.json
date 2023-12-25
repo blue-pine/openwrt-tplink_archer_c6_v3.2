@@ -1,0 +1,19 @@
+{
+	"comments": "pptpvpn.account.json",
+	"comments": "xxx",
+	"timeout": false,
+	"success": true,
+	"data": [
+		{
+			"username": "admin1",
+			"password": "tplinkpassword"
+		},
+		{
+			"username": "admin2",
+			"password": "tplinkpassword"
+		}
+	],
+	"others": {
+		"max_accounts": 16
+	}
+}

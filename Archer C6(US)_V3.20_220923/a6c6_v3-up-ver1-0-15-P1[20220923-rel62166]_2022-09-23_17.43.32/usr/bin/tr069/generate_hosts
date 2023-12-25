@@ -1,0 +1,89 @@
+#!/usr/bin/lua
+
+local clientmgmt    = require "luci.model.client_mgmt"
+local uci           = require "luci.model.uci"
+local dbg           = require "luci.tools.debug"
+local status        = require "luci.tools.status"
+local sys           = require "luci.sys"
+local uci_r         = uci.cursor()
+
+local config = "hosts"
+local TEMP_UCI_PATH = "/tmp/tr069/"
+local uci_t = uci.cursor(TEMP_UCI_PATH)
+local info = {}
+info.count = 0
+
+local WIRELESS_2G_MAIN_DEV, WIRELESS_2G_GUEST_DEV, WIRELESS_5G_MAIN_DEV, WIRELESS_5G_GUEST_DEV
+local model = uci_r:get_profile("global", "model") or ""
+if model == "MTK_762X" then
+    WIRELESS_2G_MAIN_DEV = "ra0"
+    WIRELESS_2G_GUEST_DEV = "ra1"
+    WIRELESS_5G_MAIN_DEV = "rai0"
+    WIRELESS_5G_GUEST_DEV = "rai1"
+else
+    WIRELESS_2G_MAIN_DEV = "wl1"
+    WIRELESS_2G_GUEST_DEV = "wl1.1"
+    WIRELESS_5G_MAIN_DEV = "wl0"
+    WIRELESS_5G_GUEST_DEV = "wl0.1"
+end
+
+local lease_list = status.dhcp_leases()
+local client_list = clientmgmt.get_client_list_dev()
+
+sys.call("mkdir -p " .. TEMP_UCI_PATH)
+sys.call("touch " .. TEMP_UCI_PATH .. config)   
+
+for i, v in ipairs(client_list) do
+    client={}
+    
+    if v.mac then
+        client.mac = (v.mac):gsub("-", ":"):upper() 
+    end
+
+    if v.ip then
+        client.ip = v.ip
+    end
+
+    client.active = "1"
+
+    if v.wire_type == "wired" then
+        client.iftype = "Ethernet"
+        client.lay2if = "eth0"
+    elseif v.wire_type == "2.4G" then
+        client.iftype = "802.11"
+        if v.guest == "NON_GUEST" then
+            client.lay2if = WIRELESS_2G_MAIN_DEV
+        else
+            client.lay2if = WIRELESS_2G_GUEST_DEV
+        end
+    elseif v.wire_type == "5G" then
+        client.iftype = "802.11"
+        if v.guest == "NON_GUEST" then
+            client.lay2if = WIRELESS_5G_MAIN_DEV
+        else
+            client.lay2if = WIRELESS_5G_GUEST_DEV
+        end
+    else
+        client.iftype = "Other"
+    end
+
+    client.hostname = v.hostname
+
+    client.addresssource = "Static"
+
+    client.lease_remain = "0"
+    
+    for _, lease in ipairs(lease_list) do
+        if lease.macaddr:upper() == client.mac then
+            client.addresssource = "DHCP"
+            client.lease_remain = tostring(lease.expires)
+        end
+    end
+
+    uci_t:section(config, "client", i, client)
+    info.count = info.count + 1
+end
+
+uci_t:section(config, "global", "info", info)
+uci_t:commit_without_write_flash(config)
+

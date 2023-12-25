@@ -1,0 +1,12 @@
+Package: ucode-mod-math
+Version: 2023-06-06-c7d84aae-1
+Depends: libc, ucode
+Source: package/utils/ucode
+SourceName: ucode-mod-math
+License: ISC
+Section: lang
+SourceDateEpoch: 1695039918
+Maintainer: Jo-Philipp Wich <jo@mein.io>
+Architecture: mipsel_24kc
+Installed-Size: 2579
+Description:  The math plugin provides access to various <math.h> procedures.

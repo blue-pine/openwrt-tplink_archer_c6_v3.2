@@ -1,0 +1,9 @@
+{
+	"comments": "----实际使用中，请删除所有comments字段----",
+	"comments": "说明：internet页面中当前拨号类型是DS-Lite时，则请求该数据",
+	"timeout": false,
+	"success": true,
+	"data":	{
+		"AFTR_name": "2001::231"
+	}
+}

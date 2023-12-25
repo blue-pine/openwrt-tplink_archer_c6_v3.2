@@ -1,0 +1,10 @@
+{
+	"success": true,
+	"data": {
+		"enabled": "on",
+		"unencrypted_access": "on",
+		"samba_access": "on",
+		"netbios_pass": "on",
+		"remoteip": "192.168.137.100-109"
+	}
+}
